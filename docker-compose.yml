@@ -70,8 +70,7 @@ services:
       # Security Configuration
       SECURITY_USER_NAME: ${SECURITY_USER_NAME:-admin}
       SECURITY_USER_PASSWORD: ${SECURITY_USER_PASSWORD:-admin123}
-      CSRF_ENABLED: ${CSRF_ENABLED:-false}
-      PERMITTED_PATHS: ${PERMITTED_PATHS:-/swagger-ui/**, /api-docs/**, /v3/api-docs/**, /public/**}
+      SECURITY_PERMITTED_PATHS: ${SECURITY_PERMITTED_PATHS:-/swagger-ui/**, /api-docs/**, /v3/api-docs/**}
       
       # Scheduling Configuration
       SCHEDULE_INTERVAL: ${SCHEDULE_INTERVAL:-0 15 19 ? * WED}
