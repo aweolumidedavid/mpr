@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: mpr_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-mpr_db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mpr_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mpr_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mpr_network
+
+  app:
+    build: .
+    container_name: mpr_app
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-mpr_db}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT:-2000ms}
+      
+      # Server Configuration
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      SERVER_CONTEXT_PATH: ${SERVER_CONTEXT_PATH:-/}
+      
+      # Application Configuration
+      APP_NAME: ${APP_NAME:-mpr}
+      
+      # JPA Configuration
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
+      HIBERNATE_FORMAT_SQL: ${HIBERNATE_FORMAT_SQL:-true}
+      
+      # Flyway Configuration
+      FLYWAY_ENABLED: ${FLYWAY_ENABLED:-true}
+      FLYWAY_BASELINE_ON_MIGRATE: ${FLYWAY_BASELINE_ON_MIGRATE:-true}
+      
+      # Swagger Configuration
+      SWAGGER_API_DOCS_PATH: ${SWAGGER_API_DOCS_PATH:-/api-docs}
+      SWAGGER_UI_PATH: ${SWAGGER_UI_PATH:-/swagger-ui.html}
+      SWAGGER_OPERATIONS_SORTER: ${SWAGGER_OPERATIONS_SORTER:-method}
+      
+      # Logging Configuration
+      LOG_LEVEL_MPR: ${LOG_LEVEL_MPR:-DEBUG}
+      LOG_LEVEL_SECURITY: ${LOG_LEVEL_SECURITY:-DEBUG}
+      LOG_LEVEL_HIBERNATE_SQL: ${LOG_LEVEL_HIBERNATE_SQL:-DEBUG}
+      LOG_LEVEL_HIBERNATE_BINDER: ${LOG_LEVEL_HIBERNATE_BINDER:-TRACE}
+      
+      # Security Configuration
+      SECURITY_USER_NAME: ${SECURITY_USER_NAME:-admin}
+      SECURITY_USER_PASSWORD: ${SECURITY_USER_PASSWORD:-admin123}
+      CSRF_ENABLED: ${CSRF_ENABLED:-false}
+      PERMITTED_PATHS: ${PERMITTED_PATHS:-/swagger-ui/**, /api-docs/**, /v3/api-docs/**, /public/**}
+      
+      # Scheduling Configuration
+      SCHEDULE_INTERVAL: ${SCHEDULE_INTERVAL:-0 15 19 ? * WED}
+      SCHEDULE_ENABLED: ${SCHEDULE_ENABLED:-true}
+      SCHEDULE_TIMEZONE: ${SCHEDULE_TIMEZONE:-UTC}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mpr_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  mpr_network:
+    driver: bridge 
